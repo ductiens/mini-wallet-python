@@ -1,33 +1,29 @@
 from enum import Enum
 
-class TransactionType(str, Enum):
-    """Supported transaction types in the system."""
-    DEPOSIT = "DEPOSIT"
-    WITHDRAW = "WITHDRAW"
+
+class PaySimTransactionType(str, Enum):
+    """Transaction types in the PaySim dataset."""
     TRANSFER = "TRANSFER"
+    CASH_OUT = "CASH_OUT"
+    CASH_IN = "CASH_IN"
+    PAYMENT = "PAYMENT"
+    DEBIT = "DEBIT"
 
 
-class TransactionStatus(str, Enum):
-    """Possible statuses of a transaction."""
-    PENDING = "PENDING"
-    SUCCESS = "SUCCESS"
-    FAILED = "FAILED"
+class RiskLevel(str, Enum):
+    """Risk levels assigned by the fraud detection model."""
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
 
 
-class WalletStatus(str, Enum):
-    """Possible statuses of a user's wallet."""
-    ACTIVE = "ACTIVE"
-    LOCKED = "LOCKED"
-    INACTIVE = "INACTIVE"
+class RecommendedAction(str, Enum):
+    """Recommended actions based on risk level."""
+    APPROVE = "APPROVE"
+    MANUAL_REVIEW = "MANUAL_REVIEW"
+    BLOCK = "BLOCK"
 
 
-class LedgerEntryType(str, Enum):
-    """Types of entries in the financial ledger (double-entry bookkeeping)."""
-    DEBIT = "DEBIT"    # Decreases balance (asset reduction or liability increase)
-    CREDIT = "CREDIT"  # Increases balance (asset increase or liability reduction)
-
-
-class Currency(str, Enum):
-    """Supported currencies in the system."""
-    VND = "VND"
-    USD = "USD"
+class ModelVersion(str, Enum):
+    """Versioning for trained ML models."""
+    V1 = "v1.0.0"

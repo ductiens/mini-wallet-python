@@ -10,25 +10,22 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
-    APP_NAME: str = "Mini Wallet API"
+    APP_NAME: str = "Fintech FraudOps Copilot"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
 
     # MongoDB
     MONGODB_URL: str
-    DATABASE_NAME: str = "mini_wallet"
-
-    # Security
-    SECRET_KEY: str
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    BCRYPT_LOG_ROUNDS: int = 12
+    DATABASE_NAME: str = "fraudops"
 
     # API
     API_V1_STR: str = "/api/v1"
 
     # CORS
     BACKEND_CORS_ORIGINS: Union[str, List[str]] = []
+
+    # Demo mode flag
+    DEMO_MODE: bool = True
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod

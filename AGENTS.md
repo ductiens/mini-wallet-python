@@ -1,14 +1,16 @@
 # AGENTS.md
 
-Tài liệu hướng dẫn dành cho các AI Coding Agent làm việc trong dự án `mini-wallet-python` (đã refactor định hướng sang **Fintech FraudOps Copilot**).
+Tài liệu hướng dẫn dành cho các AI Coding Agent làm việc trong dự án **Fintech FraudOps Copilot**.
 
 Hãy đọc kỹ tài liệu này trước khi chỉnh sửa bất kỳ phần mã nguồn nào. Đây là bộ quy tắc của dự án về kiến trúc, kiểm thử, phạm vi sản phẩm và phương thức giao tiếp.
 
 ---
 
 ## 🌟 1. Project Overview & Focus
-Dự án đã chuyển dịch hoàn toàn từ "Mini Wallet Backend" sang:
-**Fintech FraudOps Copilot: AI/Data Engineering Pipeline for Fraud Detection with Risk Investigation Agent**
+
+**Fintech FraudOps Copilot** is a prototype AI/Data Engineering project for fintech fraud detection.
+It ingests PaySim transaction data, cleans and engineers features, trains fraud detection models,
+runs batch inference, stores outputs in MongoDB, and exposes a Risk Investigation Agent through FastAPI.
 
 ### Các cấu phần trọng tâm của MVP:
 1. **Data Pipeline**: Profiling thô, làm sạch, và kỹ nghệ đặc trưng (feature engineering) từ bộ dữ liệu mô phỏng giao dịch Kaggle PaySim.
@@ -17,10 +19,6 @@ Dự án đã chuyển dịch hoàn toàn từ "Mini Wallet Backend" sang:
 4. **MongoDB Data Serving**: Lưu trữ và truy vấn tối ưu các giao dịch, đặc trưng và dự đoán phục vụ API.
 5. **Risk Investigation Agent**: Agent bán tự động phân tích rủi ro dựa trên rules và mô hình AI để đưa ra báo cáo chi tiết kèm giải thích bằng Markdown phục vụ các điều tra viên gian lận (FraudOps).
 
-> [!WARNING]
-> **Các cấu phần Legacy/Background (KHÔNG phát triển thêm):**
-> Các module cũ như `users`, `wallets`, `ledger` sẽ được giữ lại dưới dạng background code để tránh breaking changes, nhưng **KHÔNG** đăng ký trong FastAPI router chính và **KHÔNG** là ưu tiên phát triển trong MVP hiện tại.
-
 ---
 
 ## 🚫 2. Phạm vi Sản phẩm (Scope Limits)
@@ -28,12 +26,15 @@ Dự án đã chuyển dịch hoàn toàn từ "Mini Wallet Backend" sang:
 - Real-time streaming hoặc Event-driven architecture bằng Kafka / RabbitMQ.
 - Giao diện người dùng frontend / Dashboard (ngoại trừ tài liệu Swagger tự động của FastAPI).
 - Tích hợp thực tế với các LLM bên ngoài (OpenAI, Gemini API, LangChain, v.v.). MVP hiện tại sử dụng Risk Investigation Agent dạng rule-based chất lượng cao, phản hồi tĩnh/dựa trên quy tắc nội bộ.
-- Cơ chế Auth JWT phức tạp, luồng nạp rút tiền thật hay sổ cái kép production.
+- Real wallet money movement, deposits, withdrawals, peer-to-peer transfers.
+- Double-entry ledger hoặc sổ cái kép production.
+- Cơ chế Auth JWT phức tạp hoặc user management.
+- Real payment integration hoặc production compliance.
 
 ---
 
 ## 📂 3. Repository Architecture Rules
-Tuân thủ cấu trúc thư mục mới:
+Tuân thủ cấu trúc thư mục:
 - `app/modules/`: Chứa router, service, repository và schema cho từng miền API:
   - `transactions/`: Đọc giao dịch PaySim.
   - `risk/`: Đọc kết quả ML prediction và định nghĩa quy tắc rủi ro.
@@ -44,6 +45,9 @@ Tuân thủ cấu trúc thư mục mới:
 - `data/sample/`: Chứa file `paysim_sample.csv` (10 dòng) để phục vụ test nhanh không cần tải dữ liệu Kaggle khổng lồ.
 - `reports/`: Chứa các báo cáo phân tích tự động dưới dạng Markdown (`data_profile.md`, `model_report.md`).
 - `models/`: Lưu trữ artifact mô hình máy học.
+
+> [!NOTE]
+> Không còn thư mục legacy nào (`users/`, `wallets/`, `ledger/`). Chúng đã được xóa hoàn toàn khỏi codebase.
 
 ---
 
