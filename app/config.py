@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     MONGODB_URL: str
     DATABASE_NAME: str = "fraudops"
 
+    # OpenAI & Agent
+    OPENAI_API_KEY: str = "your_openai_api_key_here"
+    OPENAI_MODEL: str = "gpt-4o-mini"
+    LLM_AGENT_ENABLED: bool = True
+    LLM_AGENT_FALLBACK_TO_RULES: bool = True
+
     # API
     API_V1_STR: str = "/api/v1"
 

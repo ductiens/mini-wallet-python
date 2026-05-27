@@ -1,7 +1,9 @@
 import logging
 from typing import List, Optional
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from app.config import settings
 from app.modules.agents import tools
+from app.modules.agents.llm_client import call_openai_risk_agent
 from app.modules.risk import service as risk_service
 from app.common.exceptions import NotFoundException
 
@@ -126,9 +128,12 @@ def generate_explanation(transaction: dict, prediction: dict, key_signals: List[
 async def analyze_transaction_risk(db: AsyncIOMotorDatabase, transaction_id: str) -> dict:
     """
     Orchestrate the Risk Investigation Agent.
-    Gathers context from transactions and predictions, evaluates signals and compiles the final report.
+    Gathers context from transactions, predictions, and engineered features,
+    then compiles a structured investigation report using either OpenAI LLM or rule-based fallback.
     """
-    # Fetch contexts using tools
+    import pandas as pd
+    
+    # 1. Fetch contexts using tools
     txn = await tools.fetch_transaction_context(db, transaction_id)
     if not txn:
         raise NotFoundException(
@@ -139,9 +144,7 @@ async def analyze_transaction_risk(db: AsyncIOMotorDatabase, transaction_id: str
     pred = await tools.fetch_prediction_context(db, transaction_id)
     # If no prediction found in db, mock one based on transaction features to be robust
     if not pred:
-        # Generate mock prediction based on transaction values to ensure endpoint still works
-        # If isFraud = 1, give it high prob, else low
-        is_fraud_val = txn.get("isFraud", 0)
+        is_fraud_val = txn.get("isFraud", txn.get("is_fraud", 0))
         prob = 0.95 if is_fraud_val == 1 else 0.05
         pred = {
             "transaction_id": transaction_id,
@@ -150,19 +153,68 @@ async def analyze_transaction_risk(db: AsyncIOMotorDatabase, transaction_id: str
             "model_version": "mock_agent_v1"
         }
         
-    # Process
-    prob = float(pred.get("fraud_probability", 0.0))
-    risk_level = risk_service.map_probability_to_risk_level(prob)
-    action = generate_recommended_action(prob)
-    
-    signals = generate_key_signals(txn, pred)
-    explanation = generate_explanation(txn, pred, signals)
-    
-    return {
-        "transaction_id": transaction_id,
-        "risk_level": risk_level,
-        "fraud_probability": prob,
-        "key_signals": signals,
-        "recommended_action": action,
-        "explanation": explanation
-    }
+    features = await tools.fetch_features_context(db, transaction_id)
+    if not features:
+        # Fallback to default engineered features if not found in Atlas
+        features = {
+            "transaction_id": transaction_id,
+            "amount": float(txn.get("amount", 0)),
+            "amount_log": 0.0,
+            "old_balance_orig": float(txn.get("oldbalanceOrg", txn.get("old_balance_orig", 0))),
+            "new_balance_orig": float(txn.get("newbalanceOrig", txn.get("new_balance_orig", 0))),
+            "old_balance_dest": float(txn.get("oldbalanceDest", txn.get("old_balance_dest", 0))),
+            "new_balance_dest": float(txn.get("newbalanceDest", txn.get("new_balance_dest", 0))),
+            "balance_diff_orig": 0.0,
+            "balance_diff_dest": 0.0,
+            "orig_balance_error": 0.0,
+            "dest_balance_error": 0.0,
+            "origin_balance_zero_after_txn": 0,
+            "is_merchant_dest": 1 if str(txn.get("nameDest", txn.get("name_dest", ""))).startswith("M") else 0
+        }
+        
+    # 2. Try LLM Agent if enabled
+    report_dict = None
+    if settings.LLM_AGENT_ENABLED:
+        try:
+            llm_report = await call_openai_risk_agent(txn, pred, features)
+            report_dict = llm_report.model_dump()
+            logger.info("Successfully generated risk report using OpenAI LLM Agent.")
+        except Exception as e:
+            logger.error(f"Failed to generate risk report using OpenAI LLM Agent: {e}")
+            if not settings.LLM_AGENT_FALLBACK_TO_RULES:
+                raise e
+            logger.warning("LLM_AGENT_FALLBACK_TO_RULES is enabled. Falling back to rule-based generation...")
+            
+    # 3. Rule-based Fallback (or if LLM Agent is disabled)
+    if not report_dict:
+        prob = float(pred.get("fraud_probability", 0.0))
+        risk_level = risk_service.map_probability_to_risk_level(prob)
+        action = generate_recommended_action(prob)
+        signals = generate_key_signals(txn, pred, features)
+        explanation = generate_explanation(txn, pred, signals)
+        
+        report_dict = {
+            "transaction_id": transaction_id,
+            "risk_level": risk_level,
+            "fraud_probability": prob,
+            "key_signals": signals,
+            "recommended_action": action,
+            "explanation": explanation
+        }
+        logger.info("Generated risk report using Rule-based logic.")
+        
+    # 4. Save to agent_reports collection on Atlas
+    try:
+        report_doc = {**report_dict, "created_at": pd.Timestamp.now().isoformat() + "Z"}
+        report_doc.pop("_id", None)
+        
+        await db.agent_reports.update_one(
+            {"transaction_id": transaction_id},
+            {"$set": report_doc},
+            upsert=True
+        )
+        logger.info(f"Successfully saved agent report for transaction {transaction_id} to Atlas.")
+    except Exception as e:
+        logger.error(f"Failed to save agent report to database: {e}")
+        
+    return report_dict

@@ -21,3 +21,11 @@ async def fetch_prediction_context(db: AsyncIOMotorDatabase, transaction_id: str
     except Exception as e:
         logger.error(f"Error fetching prediction context: {e}")
         return None
+
+async def fetch_features_context(db: AsyncIOMotorDatabase, transaction_id: str) -> Optional[dict]:
+    """Retrieve engineered features context for the risk investigator agent."""
+    try:
+        return await db.features.find_one({"transaction_id": transaction_id})
+    except Exception as e:
+        logger.error(f"Error fetching features context: {e}")
+        return None
