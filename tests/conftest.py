@@ -10,6 +10,7 @@ from app.database import get_db
 from app.main import app
 from app.modules.users.repository import ensure_indexes as ensure_users_indexes
 from app.modules.wallets.repository import ensure_indexes as ensure_wallets_indexes
+from app.modules.ledger.repository import ensure_indexes as ensure_ledger_indexes
 
 TEST_DATABASE_NAME = "mini_wallet_test"
 
@@ -22,9 +23,9 @@ def event_loop():
     loop.close()
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="function")
 async def db_client():
-    """Session-wide AsyncIOMotorClient to connect to the DB."""
+    """Function-scoped AsyncIOMotorClient to connect to the DB."""
     client = AsyncIOMotorClient(settings.MONGODB_URL, uuidRepresentation="standard")
     yield client
     client.close()
@@ -36,13 +37,16 @@ async def test_db(db_client):
     Function-scoped database fixture that drops the test database 
     after each test run to ensure complete test isolation.
     """
-    db = db_client[TEST_DATABASE_NAME]
+    import uuid
+    unique_db_name = f"mw_{uuid.uuid4().hex[:8]}"
+    db = db_client[unique_db_name]
     # Build indexes for testing
     await ensure_users_indexes(db)
     await ensure_wallets_indexes(db)
+    await ensure_ledger_indexes(db)
     yield db
     # Cleanup after test function executes
-    await db_client.drop_database(TEST_DATABASE_NAME)
+    await db_client.drop_database(unique_db_name)
 
 
 @pytest_asyncio.fixture(scope="function")
