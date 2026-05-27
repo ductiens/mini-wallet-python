@@ -44,8 +44,7 @@ async def get_user_by_id(db: AsyncIOMotorDatabase, user_id: str) -> dict:
     user = await repository.get_user_by_id(db, user_id)
     if not user:
         raise NotFoundException(
-            message=f"User with ID {user_id} not found",
-            error_code="USER_NOT_FOUND"
+            message=f"User with ID {user_id} not found"
         )
     return user
 

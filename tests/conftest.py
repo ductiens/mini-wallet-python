@@ -9,6 +9,7 @@ from app.config import settings
 from app.database import get_db
 from app.main import app
 from app.modules.users.repository import ensure_indexes as ensure_users_indexes
+from app.modules.wallets.repository import ensure_indexes as ensure_wallets_indexes
 
 TEST_DATABASE_NAME = "mini_wallet_test"
 
@@ -38,6 +39,7 @@ async def test_db(db_client):
     db = db_client[TEST_DATABASE_NAME]
     # Build indexes for testing
     await ensure_users_indexes(db)
+    await ensure_wallets_indexes(db)
     yield db
     # Cleanup after test function executes
     await db_client.drop_database(TEST_DATABASE_NAME)
