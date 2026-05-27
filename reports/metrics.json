@@ -1,6 +1,6 @@
 {
   "model_version": "v1.0.0",
-  "trained_at": "2026-05-27T15:12:04.893845Z",
+  "trained_at": "2026-05-27T15:19:31.014135Z",
   "dataset_size": 10,
   "metrics": {
     "logistic_regression": {

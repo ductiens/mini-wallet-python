@@ -166,11 +166,13 @@ def import_data(clean_file: str, features_file: str, predictions_file: str, metr
     db.predictions.create_index("transaction_id", unique=True)
     db.predictions.create_index("risk_level")
     db.predictions.create_index("predicted_label")
+    db.predictions.create_index("model_version")
     
     db.model_runs.create_index("model_version")
     
     db.agent_reports.create_index("transaction_id", unique=True)
     db.agent_reports.create_index("risk_level")
+    db.agent_reports.create_index("created_at")
     
     logger.info("All collection index setups completed successfully!")
     client.close()
