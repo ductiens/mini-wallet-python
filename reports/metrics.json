@@ -1,0 +1,19 @@
+{
+  "model_version": "v1.0.0",
+  "trained_at": "2026-05-27T13:45:00Z",
+  "dataset": "paysim_sample",
+  "metrics": {
+    "logistic_regression": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "roc_auc": 0.0
+    },
+    "random_forest": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "roc_auc": 0.0
+    }
+  }
+}

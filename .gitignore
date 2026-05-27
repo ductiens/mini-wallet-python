@@ -57,15 +57,21 @@ Thumbs.db
 desktop.ini
 
 # Project specific data directories
-# Ignore all downloaded Kaggle raw data, processed data, and custom samples
+# Ignore all downloaded Kaggle raw data, processed data, features, and custom models
+kaggle.json
 data/raw/*
 data/processed/*
-data/sample/*
+data/features/*
+models/*
 
 # Do not ignore .gitkeep files so the directory structure is preserved in git
 !data/raw/.gitkeep
 !data/processed/.gitkeep
-!data/sample/.gitkeep
+!data/features/.gitkeep
+!models/.gitkeep
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
 
 # Unit test / coverage reports
 htmlcov/

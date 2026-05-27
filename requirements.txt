@@ -25,6 +25,9 @@ uuid6==2024.1.12              # UUID v7
 kaggle
 pandas
 tqdm
+numpy
+scikit-learn
+joblib
 
 # Testing
 pytest==8.2.0

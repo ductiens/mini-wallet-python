@@ -8,6 +8,14 @@ from app.common.exceptions import AppException
 from app.common.response import error_response
 from fastapi.exceptions import RequestValidationError
 
+from app.modules.transactions.repository import ensure_indexes as ensure_transactions_indexes
+from app.modules.transactions.router import router as transactions_router
+from app.modules.risk.repository import ensure_indexes as ensure_risk_indexes
+from app.modules.risk.router import router as risk_router
+from app.modules.analytics.router import router as analytics_router
+from app.modules.agents.router import router as agents_router
+
+# Legacy imports restored for backward compatibility with active test suites
 from app.modules.users.repository import ensure_indexes as ensure_users_indexes
 from app.modules.users.router import router as users_router
 from app.modules.wallets.repository import ensure_indexes as ensure_wallets_indexes
@@ -29,12 +37,19 @@ async def lifespan(app: FastAPI):
     try:
         await db_manager.connect()
         if db_manager.db is not None:
+            # Ensure index setups for new modules
+            await ensure_transactions_indexes(db_manager.db)
+            logger.info("Transactions database indexes ensured successfully.")
+            await ensure_risk_indexes(db_manager.db)
+            logger.info("Risk database indexes ensured successfully.")
+            
+            # Legacy index setups restored
             await ensure_users_indexes(db_manager.db)
-            logger.info("Users database indexes ensured successfully.")
+            logger.info("Legacy Users database indexes ensured.")
             await ensure_wallets_indexes(db_manager.db)
-            logger.info("Wallets database indexes ensured successfully.")
+            logger.info("Legacy Wallets database indexes ensured.")
             await ensure_ledger_indexes(db_manager.db)
-            logger.info("Ledger database indexes ensured successfully.")
+            logger.info("Legacy Ledger database indexes ensured.")
     except Exception as e:
         logger.error(f"Startup database connection or index setup failed: {e}")
     yield
@@ -48,6 +63,13 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# New analytical & agentic routers registered
+app.include_router(transactions_router)
+app.include_router(risk_router)
+app.include_router(analytics_router)
+app.include_router(agents_router)
+
+# Legacy routers registered for backward compatibility
 app.include_router(users_router)
 app.include_router(wallets_router)
 app.include_router(ledger_router)
