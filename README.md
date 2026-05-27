@@ -1,7 +1,7 @@
 # Fintech FraudOps Copilot
 ### AI/Data Engineering Pipeline for Fraud Detection with Risk Investigation Agent
 
-A state-of-the-art Fintech fraud detection platform featuring an end-to-end Data Engineering & Machine Learning pipeline, coupled with an AI-driven **Risk Investigation Agent** to analyze, classify, and explain fraudulent transactions.
+A prototype Fintech fraud detection platform featuring an end-to-end Data Engineering & Machine Learning pipeline, coupled with an AI-driven **Risk Investigation Agent** to analyze, classify, and explain fraudulent transactions.
 
 > **Scope Statement:** This project is a prototype offline batch fraud detection system.
 > It is **not** a production wallet, payment processor, or real-time fraud engine.
@@ -52,7 +52,7 @@ graph TD
 ## 📂 Project Structure
 
 ```text
-mini-wallet-python/
+Fintech-FraudOps-Copilot/
 ├── app/
 │   ├── main.py                     # App bootstrap & router registrations
 │   ├── config.py                   # Environment settings loader
