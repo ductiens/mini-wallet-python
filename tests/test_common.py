@@ -4,51 +4,44 @@ import pytest
 from fastapi.responses import JSONResponse
 
 from app.common.constants import (
-    TransactionType,
-    TransactionStatus,
-    WalletStatus,
-    LedgerEntryType,
-    Currency,
+    PaySimTransactionType,
+    RiskLevel,
+    RecommendedAction,
+    ModelVersion,
 )
 from app.common.exceptions import (
     AppException,
     NotFoundException,
     BadRequestException,
-    InsufficientBalanceException,
     DuplicateRequestException,
 )
 from app.common.response import success_response, error_response
 from app.common.utils import (
     generate_id,
     now_utc,
-    hash_password,
-    verify_password,
 )
 
 
 def test_constants():
-    # TransactionType
-    assert TransactionType.DEPOSIT == "DEPOSIT"
-    assert TransactionType.WITHDRAW == "WITHDRAW"
-    assert TransactionType.TRANSFER == "TRANSFER"
+    # PaySimTransactionType
+    assert PaySimTransactionType.TRANSFER == "TRANSFER"
+    assert PaySimTransactionType.CASH_OUT == "CASH_OUT"
+    assert PaySimTransactionType.CASH_IN == "CASH_IN"
+    assert PaySimTransactionType.PAYMENT == "PAYMENT"
+    assert PaySimTransactionType.DEBIT == "DEBIT"
 
-    # TransactionStatus
-    assert TransactionStatus.PENDING == "PENDING"
-    assert TransactionStatus.SUCCESS == "SUCCESS"
-    assert TransactionStatus.FAILED == "FAILED"
+    # RiskLevel
+    assert RiskLevel.LOW == "LOW"
+    assert RiskLevel.MEDIUM == "MEDIUM"
+    assert RiskLevel.HIGH == "HIGH"
 
-    # WalletStatus
-    assert WalletStatus.ACTIVE == "ACTIVE"
-    assert WalletStatus.LOCKED == "LOCKED"
-    assert WalletStatus.INACTIVE == "INACTIVE"
+    # RecommendedAction
+    assert RecommendedAction.APPROVE == "APPROVE"
+    assert RecommendedAction.MANUAL_REVIEW == "MANUAL_REVIEW"
+    assert RecommendedAction.BLOCK == "BLOCK"
 
-    # LedgerEntryType
-    assert LedgerEntryType.DEBIT == "DEBIT"
-    assert LedgerEntryType.CREDIT == "CREDIT"
-
-    # Currency
-    assert Currency.VND == "VND"
-    assert Currency.USD == "USD"
+    # ModelVersion
+    assert ModelVersion.V1 == "v1.0.0"
 
 
 def test_exceptions():
@@ -60,27 +53,21 @@ def test_exceptions():
     assert exc.details == {"info": "test"}
 
     # NotFoundException
-    exc_nf = NotFoundException("User not found", details={"user_id": "123"})
-    assert exc_nf.message == "User not found"
+    exc_nf = NotFoundException("Transaction not found", details={"transaction_id": "123"})
+    assert exc_nf.message == "Transaction not found"
     assert exc_nf.error_code == "RESOURCE_NOT_FOUND"
     assert exc_nf.status_code == 404
-    assert exc_nf.details == {"user_id": "123"}
+    assert exc_nf.details == {"transaction_id": "123"}
 
     # BadRequestException
-    exc_br = BadRequestException("Invalid amount")
-    assert exc_br.message == "Invalid amount"
+    exc_br = BadRequestException("Invalid transaction type")
+    assert exc_br.message == "Invalid transaction type"
     assert exc_br.error_code == "BAD_REQUEST"
     assert exc_br.status_code == 400
 
-    # InsufficientBalanceException
-    exc_ib = InsufficientBalanceException()
-    assert exc_ib.message == "Insufficient balance in wallet"
-    assert exc_ib.error_code == "INSUFFICIENT_BALANCE"
-    assert exc_ib.status_code == 400
-
     # DuplicateRequestException
-    exc_dr = DuplicateRequestException("Tx already exists")
-    assert exc_dr.message == "Tx already exists"
+    exc_dr = DuplicateRequestException("Prediction already exists")
+    assert exc_dr.message == "Prediction already exists"
     assert exc_dr.error_code == "DUPLICATE_REQUEST"
     assert exc_dr.status_code == 409
 
@@ -97,7 +84,7 @@ def test_response_helpers():
     assert body_success["data"] == {"id": "xyz"}
 
     # error_response
-    res_error = error_response(message="Invalid format", error_code="VALIDATION_FAILED", status_code=422, details={"field": "email"})
+    res_error = error_response(message="Invalid format", error_code="VALIDATION_FAILED", status_code=422, details={"field": "amount"})
     assert isinstance(res_error, JSONResponse)
     assert res_error.status_code == 422
     
@@ -105,7 +92,7 @@ def test_response_helpers():
     assert body_error["success"] is False
     assert body_error["error_code"] == "VALIDATION_FAILED"
     assert body_error["message"] == "Invalid format"
-    assert body_error["details"] == {"field": "email"}
+    assert body_error["details"] == {"field": "amount"}
 
 
 def test_utils_generate_id():
@@ -131,18 +118,3 @@ def test_utils_now_utc():
     t2 = datetime.now(timezone.utc)
     delta = t2 - t
     assert abs(delta.total_seconds()) < 5.0
-
-
-def test_utils_password():
-    password = "SuperSecretPassword123!"
-    hashed = hash_password(password)
-    
-    assert isinstance(hashed, str)
-    assert hashed != password
-    assert len(hashed) > 20
-    
-    # Verify correct password
-    assert verify_password(password, hashed) is True
-    
-    # Verify incorrect password
-    assert verify_password("WrongPassword!", hashed) is False

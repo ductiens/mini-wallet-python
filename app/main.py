@@ -15,13 +15,7 @@ from app.modules.risk.router import router as risk_router
 from app.modules.analytics.router import router as analytics_router
 from app.modules.agents.router import router as agents_router
 
-# Legacy imports restored for backward compatibility with active test suites
-from app.modules.users.repository import ensure_indexes as ensure_users_indexes
-from app.modules.users.router import router as users_router
-from app.modules.wallets.repository import ensure_indexes as ensure_wallets_indexes
-from app.modules.wallets.router import router as wallets_router
-from app.modules.ledger.repository import ensure_indexes as ensure_ledger_indexes
-from app.modules.ledger.router import router as ledger_router
+
 
 
 # Configure logging
@@ -43,13 +37,7 @@ async def lifespan(app: FastAPI):
             await ensure_risk_indexes(db_manager.db)
             logger.info("Risk database indexes ensured successfully.")
             
-            # Legacy index setups restored
-            await ensure_users_indexes(db_manager.db)
-            logger.info("Legacy Users database indexes ensured.")
-            await ensure_wallets_indexes(db_manager.db)
-            logger.info("Legacy Wallets database indexes ensured.")
-            await ensure_ledger_indexes(db_manager.db)
-            logger.info("Legacy Ledger database indexes ensured.")
+
     except Exception as e:
         logger.error(f"Startup database connection or index setup failed: {e}")
     yield
@@ -69,10 +57,7 @@ app.include_router(risk_router)
 app.include_router(analytics_router)
 app.include_router(agents_router)
 
-# Legacy routers registered for backward compatibility
-app.include_router(users_router)
-app.include_router(wallets_router)
-app.include_router(ledger_router)
+
 
 # Global Exception Handlers for Unified API Responses
 @app.exception_handler(AppException)

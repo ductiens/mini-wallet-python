@@ -3,6 +3,9 @@
 
 A state-of-the-art Fintech fraud detection platform featuring an end-to-end Data Engineering & Machine Learning pipeline, coupled with an AI-driven **Risk Investigation Agent** to analyze, classify, and explain fraudulent transactions.
 
+> **Scope Statement:** This project is a prototype offline batch fraud detection system.
+> It is **not** a production wallet, payment processor, or real-time fraud engine.
+
 ---
 
 ## 📌 Problem Statement
@@ -56,7 +59,7 @@ mini-wallet-python/
 │   ├── database.py                 # Async MongoDB (Motor) connection manager
 │   │
 │   ├── modules/                    # API Endpoints
-│   │   ├── transactions/           # PaySim transaction readers (not wallet execution)
+│   │   ├── transactions/           # PaySim transaction readers
 │   │   │   ├── router.py
 │   │   │   ├── service.py
 │   │   │   ├── repository.py
@@ -121,8 +124,8 @@ mini-wallet-python/
 │   └── model_report.md             # Model comparison metrics
 │
 ├── tests/                          # Automated Pytest Suite
-│   ├── test_common.py
-│   ├── test_feature_engineering.py # Validates ML feature construction
+│   ├── test_common.py              # Validates shared constants & exceptions
+│   ├── test_feature_engineering.py  # Validates ML feature construction
 │   ├── test_risk_rules.py          # Validates probability to risk mappings
 │   └── test_agent.py               # Validates Risk Investigator Agent reports
 │
@@ -189,14 +192,13 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 - **API BASE URL**: `http://127.0.0.1:8000/`
 - **Swagger Docs**: `http://127.0.0.1:8000/docs`
-- **Health Check**: `http://127.0.0.1:8000/health`
 
 ---
 
 ## 📡 Core API Endpoints
 
 ### 1. Transactions API
-- **`GET /transactions`**: List Paginated transactions imported from PaySim.
+- **`GET /transactions`**: List paginated transactions imported from PaySim.
 - **`GET /transactions/{transaction_id}`**: Get specific transaction attributes.
 
 ### 2. Risk Analysis API
@@ -240,4 +242,5 @@ pytest
 ## ⚠️ Limitations & Future Improvements
 1. **Rule-Based Agent MVP**: The current agent runs on a structured, rule-based reasoning engine. Future releases will connect this agent to LLM processors (e.g. Gemini 1.5 Pro) utilizing the `prompts.py` context.
 2. **Offline Pipelines**: Real-time Kafka streaming processing could be configured to transition this from an offline batch pipeline to a streaming inference model.
-3. **Legacy Wallet Codes**: Legacy wallet management (`users`, `wallets`, `ledger`) remain in the background and are excluded from the main API router in this MVP version.
+3. **No Frontend Dashboard**: The system currently exposes only a FastAPI Swagger UI. A dedicated investigation dashboard could be built in the future.
+4. **Sample Data Only**: The included `paysim_sample.csv` contains only 10 rows. Full-scale testing requires downloading the Kaggle PaySim dataset.

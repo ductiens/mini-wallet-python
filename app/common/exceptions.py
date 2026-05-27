@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional
 
 class AppException(Exception):
-    """Base application exception for mini-wallet backend."""
+    """Base application exception for Fintech FraudOps Copilot."""
     def __init__(
         self,
         message: str,
@@ -38,22 +38,6 @@ class BadRequestException(AppException):
         self,
         message: str = "Bad request",
         error_code: str = "BAD_REQUEST",
-        details: Optional[Dict[str, Any]] = None
-    ):
-        super().__init__(
-            message=message,
-            error_code=error_code,
-            status_code=400,
-            details=details
-        )
-
-
-class InsufficientBalanceException(AppException):
-    """Exception raised when wallet has insufficient balance (HTTP 400)."""
-    def __init__(
-        self,
-        message: str = "Insufficient balance in wallet",
-        error_code: str = "INSUFFICIENT_BALANCE",
         details: Optional[Dict[str, Any]] = None
     ):
         super().__init__(
